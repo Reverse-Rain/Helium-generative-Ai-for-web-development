@@ -1,0 +1,157 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Select Elements with GPT-3 Code Generation</title>
+    <style>
+        /* Style to indicate selected elements */
+        .selected {
+            border: 2px solid #3498db;
+            /* Change the border style for selected elements */
+        }
+
+        /* Modal styles */
+        .modal {
+            display: none;
+            position: absolute;
+            background-color: #f0f0f0;
+            padding: 20px;
+            z-index: 1000;
+            user-drag: none;
+            /* Disable default drag behavior */
+        }
+    </style>
+</head>
+
+<body>
+
+    <h1>Generative web designing</h1>
+    <div class="selectable" onclick="selectElement(this)">Click me to select</div>
+    <div class="selectable" onclick="selectElement(this)">Click me to select</div>
+    <div class="selectable" onclick="selectElement(this)">Click me to select</div>
+
+    <script>
+        let selectedElement;
+        let modal;
+    
+        async function selectElement(element) {
+            // Toggle the 'selected' class to indicate selection
+            element.classList.toggle('selected');
+    
+            if (element.classList.contains('selected')) {
+                selectedElement = element;
+                showAndPositionModal();
+            } else {
+                hideModal();
+            }
+        }
+    
+        function showAndPositionModal() {
+            modal = document.getElementById('myModal');
+            modal.style.display = 'block';
+    
+            // Make the modal draggable
+            modal.addEventListener('mousedown', startDragging);
+            document.addEventListener('mouseup', stopDragging);
+    
+            // Initialize the text area with a prompt
+            const htmlInput = document.getElementById('htmlInput');
+            htmlInput.value = "Generate a <div> element with some text inside.";
+    
+            // Focus on the text area for user input
+            htmlInput.focus();
+        }
+    
+        function hideModal() {
+            if (modal) {
+                modal.style.display = 'none';
+                modal.removeEventListener('mousedown', startDragging);
+                document.removeEventListener('mouseup', stopDragging);
+            }
+        }
+    
+        let isDragging = false;
+        let modalOffsetX, modalOffsetY;
+    
+        function startDragging(event) {
+            if (event.target === modal) {
+                isDragging = true;
+                modalOffsetX = event.clientX - modal.getBoundingClientRect().left;
+                modalOffsetY = event.clientY - modal.getBoundingClientRect().top;
+            }
+        }
+    
+        function stopDragging() {
+            isDragging = false;
+        }
+    
+        document.addEventListener('mousemove', dragModal);
+    
+        function dragModal(event) {
+            if (isDragging) {
+                event.preventDefault();
+                const x = event.clientX - modalOffsetX;
+                const y = event.clientY - modalOffsetY;
+                modal.style.left = x + 'px';
+                modal.style.top = y + 'px';
+            }
+        }
+    
+        async function generateCode() {
+            const htmlInput = document.getElementById('htmlInput');
+            const userPrompt = htmlInput.value;
+    
+            if (selectedElement && userPrompt) {
+                try {
+                    const prompt = "Write HTML, CSS, and JavaScript code for " + userPrompt + " note that do not start from the html5 starter template and if the response contains html, css, js seperate combine it to make a single code ";
+                    const apiUrl = "https://api.openai.com/v1/engines/text-davinci-003/completions"; // Replace with your GPT API endpoint
+    
+                    const requestBody = {
+                        prompt,
+                        max_tokens: 500,
+                        temperature: 0.9,
+                        // Adjust the number of tokens as needed
+                    };
+    
+                    const apiKey = "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"; // Replace with your GPT API key
+    
+                    const response = await fetch(apiUrl, {
+                        method: "POST",
+                        headers: {
+                            "Content-Type": "application/json",
+                            "Authorization": `Bearer ${apiKey}`,
+                        },
+                        body: JSON.stringify(requestBody),
+                    });
+    
+                    if (!response.ok) {
+                        throw new Error(`Failed to fetch data. Status: ${response.status}`);
+                    }
+    
+                    const data = await response.json();
+                    const generatedText = data.choices[0].text;
+                    // Update the HTML content of the selected element with the generated code
+                    if (selectedElement) {
+                        selectedElement.innerHTML = generatedText;
+                    }
+                    hideModal();
+                } catch (error) {
+                    console.error('Error generating code:', error);
+                }
+            }
+        }
+    </script>
+    
+
+    <!-- Modal -->
+    <div class="modal" id="myModal">
+        <h2>Enter Element Description</h2>
+        <textarea id="htmlInput" placeholder="Enter element description"></textarea>
+        <button onclick="generateCode()">Generate & Replace</button>
+    </div>
+
+</body>
+
+</html>
