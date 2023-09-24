@@ -1,0 +1,63 @@
+
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <link rel="stylesheet" href="style.css">
+    <script src="style.js"></script>
+
+    <div class="input-container" id="userInput">
+        <input type="text" id="bodyContent" placeholder="Enter text">
+        <button id="generateButton" title="Generate" class="btn">
+            <svg xmlns="http://www.w3.org/2000/svg" x="0px" y="0px" width="20" height="20" viewBox="0 0 30 30">
+                <path d="M 15 2.0449219 C 14.23364 2.0449219 13.468083 2.4278726 13.097656 3.1933594 L 10.414062 8.7304688 L 4.3183594 9.5703125 C 2.6338794 9.8039132 1.9154436 12.013576 3.1425781 13.191406 L 7.5800781 17.453125 L 6.4941406 23.509766 C 6.1950591 25.183893 8.0750466 26.547617 9.5742188 25.746094 L 15 22.84375 L 20.423828 25.748047 L 20.425781 25.748047 C 21.925707 26.549102 23.803284 25.183724 23.503906 23.509766 L 22.419922 17.453125 L 26.857422 13.191406 C 28.083477 12.012743 27.366737 9.802173 25.681641 9.5703125 L 19.585938 8.7304688 L 16.902344 3.1933594 C 16.531917 2.4278726 15.76636 2.0449219 15 2.0449219 z M 15 3.9550781 L 15 14 L 18.275391 10.570312 L 25.408203 11.550781 C 25.505559 11.564175 25.532972 11.598596 25.527344 11.644531 L 15 14 L 20.261719 16.753906 L 21.535156 23.861328 C 21.556803 23.982377 21.515149 24.013019 21.439453 23.998047 L 15 14 L 15 20.574219 L 8.6308594 23.984375 C 8.5457071 24.030011 8.5017604 24.020391 8.4785156 23.982422 L 15 14 L 9.7363281 16.751953 L 4.5273438 11.748047 C 4.4817422 11.704278 4.4743872 11.67378 4.4707031 11.644531 L 15 14 L 11.746094 10.566406 L 11.748047 10.566406 L 14.896484 4.0644531 C 14.932059 3.9909399 14.966029 3.9550781 15 3.9550781 z M 7 4 C 6.744 4 6.4879688 4.0974687 6.2929688 4.2929688 C 5.9019687 4.6839688 5.9019687 5.3170313 6.2929688 5.7070312 C 6.6839688 6.0980313 7.3170313 6.0980313 7.7070312 5.7070312 C 8.0980312 5.3160312 8.0980312 4.6829687 7.7070312 4.2929688 C 7.5120312 4.0974687 7.256 4 7 4 z M 23 4 C 22.744 4 22.487969 4.0974687 22.292969 4.2929688 C 21.901969 4.6839688 21.901969 5.3170313 22.292969 5.7070312 C 22.683969 6.0980313 23.317031 6.0980313 23.707031 5.7070312 C 24.098031 5.3160312 24.098031 4.6829687 23.707031 4.2929688 C 23.512031 4.0974687 23.256 4 23 4 z M 4 18 C 3.744 18 3.4879687 18.097469 3.2929688 18.292969 C 2.9019687 18.683969 2.9019687 19.317031 3.2929688 19.707031 C 3.6839688 20.098031 4.3170313 20.098031 4.7070312 19.707031 C 5.0970312 19.316031 5.0980313 18.682969 4.7070312 18.292969 C 4.5120312 18.097469 4.256 18 4 18 z M 26 18 C 25.744 18 25.487969 18.097469 25.292969 18.292969 C 24.901969 18.683969 24.901969 19.317031 25.292969 19.707031 C 25.683969 20.098031 26.317031 20.098031 26.707031 19.707031 C 27.098031 19.316031 27.098031 18.682969 26.707031 18.292969 C 26.512031 18.097469 26.256 18 26 18 z"></path>
+                </svg>
+    </button>
+    </div>
+
+
+    <pre id="outputCode"></pre>
+
+
+    
+<script>
+
+const apiKey = 'Api_key'; // Replace with your OpenAI API key
+const generateButton = document.getElementById('generateButton');
+
+const bodyContentInput = document.getElementById('bodyContent');
+const outputCode = document.getElementById('outputCode');
+
+generateButton.addEventListener('click', () => {
+    // Get the body content from the input
+
+    const bodyContent = bodyContentInput.value;
+    
+
+    // Create a prompt for the OpenAI API
+    const prompt = `Generate an HTML,css,js code for '${bodyContent}' and note that dont add any discription or any explanation just write the code only.`;
+
+    // Make a request to the OpenAI API
+    fetch('https://api.openai.com/v1/engines/text-davinci-002/completions', {
+        method: 'POST',
+        headers: {
+            'Content-Type': 'application/json',
+            'Authorization': `Bearer ${apiKey}`,
+        },
+        body: JSON.stringify({
+            prompt,
+            max_tokens: 1000, // Adjust the max_tokens as needed
+        }),
+    })
+    .then(response => response.json())
+    .then(data => {
+        const htmlCode = data.choices[0].text;
+
+        // Display the generated code
+        outputCode.textContent = htmlCode;
+    })
+    .catch(error => {
+        console.error('Error:', error);
+        outputCode.textContent = 'Error generating code.';
+    });
+});
+</script>
+

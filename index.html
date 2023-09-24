@@ -1,0 +1,156 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+        }
+
+        .builder-container {
+            display: flex;
+        }
+
+        .sidebar {
+            width: 20%;
+            background-color: #f2f2f2;
+            padding: 10px;
+        }
+
+        .sidebar-right {
+            width: 25%;
+            float: right;
+            background-color: #f2f2f2;
+            padding: 10px;
+        }
+
+        .canvas {
+            flex: 1;
+            background-color: #ffffff;
+            min-height: 500px;
+            padding: 20px;
+        }
+
+        .draggable {
+            background-color: #4CAF50;
+            color: #fff;
+            padding: 10px;
+            margin: 10px 0;
+            cursor: pointer;
+        }
+
+        .element-preview {
+            border: 1px solid #ccc;
+            padding: 10px;
+            min-height: 100px;
+        }
+    </style>
+</head>
+<body>
+    <div class="builder-container">
+        <div class="sidebar" id="sidebar">
+            <!-- File names are dynamically added here -->
+        </div>
+        <div class="canvas" ondrop="drop(event)" ondragover="allowDrop(event)" id="canvas">
+        </div>
+    </div>
+    
+    
+    <button onclick="downloadHTML()">Download HTML</button>
+    <script>
+        const folderPath = 'elements'; // Replace with the path to your folder
+
+        function allowDrop(event) {
+            event.preventDefault();
+        }
+
+        function drag(event, filename) {
+            event.dataTransfer.setData("text", filename);
+        }
+
+        function drop(event) {
+            event.preventDefault();
+            const filename = event.dataTransfer.getData("text");
+
+            // Load the HTML content of the file from the folder
+            fetch(`${folderPath}/${filename}`)
+                .then(response => response.text())
+                .then(fileContent => {
+                    const element = document.createElement('div');
+                    element.innerHTML = fileContent;
+                    element.classList.add('editable');
+                    element.onclick = () => selectElement(element);
+                    event.target.appendChild(element);
+                })
+                .catch(error => console.error(error));
+        }
+
+        let selectedElement = null;
+
+        function selectElement(element) {
+            if (selectedElement) {
+                selectedElement.classList.remove('selected');
+            }
+            selectedElement = element;
+            selectedElement.classList.add('selected');
+
+            const elementCodeTextarea = document.getElementById('element-code');
+            elementCodeTextarea.value = element.innerHTML;
+
+            const elementPreview = document.getElementById('element-preview');
+            elementPreview.innerHTML = element.innerHTML;
+        }
+
+        function saveElementChanges() {
+            if (selectedElement) {
+                const elementCodeTextarea = document.getElementById('element-code');
+                selectedElement.innerHTML = elementCodeTextarea.value;
+
+                const elementPreview = document.getElementById('element-preview');
+                elementPreview.innerHTML = elementCodeTextarea.value;
+            }
+        }
+
+        function downloadHTML() {
+            const canvas = document.getElementById('canvas');
+            const htmlContent = canvas.innerHTML;
+
+            const blob = new Blob([htmlContent], { type: "text/html" });
+            const url = URL.createObjectURL(blob);
+
+            const a = document.createElement('a');
+            a.href = url;
+            a.download = "generated_website.html";
+            a.click();
+
+            URL.revokeObjectURL(url);
+        }
+
+        function listFiles() {
+            fetch(`${folderPath}`)
+                .then(response => response.text())
+                .then(data => {
+                    const parser = new DOMParser();
+                    const xml = parser.parseFromString(data, 'text/xml');
+                    const files = xml.getElementsByTagName('a');
+                    const sidebar = document.getElementById('sidebar');
+
+                    for (let i = 0; i < files.length; i++) {
+                        const fileName = files[i].textContent;
+                        if (fileName !== '../') {
+                            const draggableElement = document.createElement('div');
+                            draggableElement.classList.add('draggable');
+                            draggableElement.setAttribute('draggable', 'true');
+                            draggableElement.innerText = fileName;
+                            draggableElement.setAttribute('data-filename', fileName);
+                            draggableElement.ondragstart = (event) => drag(event, fileName);
+                            sidebar.appendChild(draggableElement);
+                        }
+                    }
+                })
+                .catch(error => console.error(error));
+        }
+
+        listFiles();
+    </script>
+</body>
+</html>
